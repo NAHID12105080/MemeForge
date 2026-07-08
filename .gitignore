@@ -51,3 +51,6 @@ next-env.d.ts
 
 # drizzle
 /drizzle/*.sql
+
+# local tooling
+/.claude/
