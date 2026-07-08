@@ -1,24 +1,40 @@
-import Link from "next/link";
+import { Suspense } from "react";
 
-import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { CtaSection } from "@/features/marketing/components/cta-section";
+import { FaqSection } from "@/features/marketing/components/faq-section";
+import { FeatureShowcase } from "@/features/marketing/components/feature-showcase";
+import { FeaturedTemplatesSection } from "@/features/marketing/components/featured-templates-section";
+import { Hero } from "@/features/marketing/components/hero";
+import { PricingSection } from "@/features/marketing/components/pricing-section";
+import { StatsSection } from "@/features/marketing/components/stats-section";
+import { TestimonialsSection } from "@/features/marketing/components/testimonials-section";
+import { TrendingMarqueeSection } from "@/features/marketing/components/trending-marquee-section";
+
+export const revalidate = 300;
+
+function SectionSkeleton({ className }: { className?: string }) {
+  return <Skeleton className={className ?? "mx-auto h-64 w-full max-w-7xl"} />;
+}
 
 export default function LandingPage() {
   return (
-    <div className="mx-auto flex max-w-3xl flex-col items-center gap-6 px-4 py-32 text-center">
-      <h1 className="font-heading text-4xl font-semibold tracking-tight sm:text-6xl">
-        <span className="text-gradient-brand">MemeForge</span>
-      </h1>
-      <p className="text-muted-foreground max-w-xl text-lg text-balance">
-        An AI-powered meme creation platform. The full landing experience is under construction.
-      </p>
-      <div className="flex gap-3">
-        <Button size="lg" asChild>
-          <Link href="/templates">Browse templates</Link>
-        </Button>
-        <Button size="lg" variant="outline" asChild>
-          <Link href="/editor/new">Open editor</Link>
-        </Button>
-      </div>
+    <div className="flex flex-col">
+      <Hero />
+      <Suspense fallback={<SectionSkeleton />}>
+        <StatsSection />
+      </Suspense>
+      <Suspense fallback={<SectionSkeleton />}>
+        <FeaturedTemplatesSection />
+      </Suspense>
+      <Suspense fallback={<SectionSkeleton />}>
+        <TrendingMarqueeSection />
+      </Suspense>
+      <FeatureShowcase />
+      <TestimonialsSection />
+      <PricingSection />
+      <FaqSection />
+      <CtaSection />
     </div>
   );
 }
