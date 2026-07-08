@@ -2,7 +2,8 @@
 
 import { LayoutDashboard, Palette, Search, Settings, Sparkles, SquarePlus } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { create } from "zustand";
 
 import {
   CommandDialog,
@@ -14,6 +15,18 @@ import {
   CommandSeparator,
 } from "@/components/ui/command";
 
+interface CommandPaletteStore {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  toggle: () => void;
+}
+
+export const useCommandPaletteStore = create<CommandPaletteStore>((set) => ({
+  open: false,
+  setOpen: (open) => set({ open }),
+  toggle: () => set((state) => ({ open: !state.open })),
+}));
+
 const navigationItems = [
   { label: "New meme", href: "/editor/new", icon: SquarePlus },
   { label: "Templates", href: "/templates", icon: Palette },
@@ -23,19 +36,21 @@ const navigationItems = [
 ];
 
 export function CommandPalette() {
-  const [open, setOpen] = useState(false);
+  const open = useCommandPaletteStore((state) => state.open);
+  const setOpen = useCommandPaletteStore((state) => state.setOpen);
+  const toggle = useCommandPaletteStore((state) => state.toggle);
   const router = useRouter();
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "k" && (event.metaKey || event.ctrlKey)) {
         event.preventDefault();
-        setOpen((prev) => !prev);
+        toggle();
       }
     }
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [toggle]);
 
   function runCommand(action: () => void) {
     setOpen(false);
