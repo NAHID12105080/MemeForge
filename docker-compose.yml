@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-memeforge}
       POSTGRES_DB: ${POSTGRES_DB:-memeforge}
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - memeforge_pgdata:/var/lib/postgresql/data
     healthcheck:
