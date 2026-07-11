@@ -1,5 +1,7 @@
 "use client";
 
+import { Bold, Italic, Underline } from "lucide-react";
+
 import { ColorPickerPopover } from "@/components/composed/color-picker-popover";
 import { FontPicker } from "@/components/composed/font-picker";
 import { Label } from "@/components/ui/label";
@@ -77,6 +79,40 @@ export function TextPropertiesPanel({ layer }: { layer: TextLayer }) {
             </SelectContent>
           </Select>
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-xs">Style</Label>
+        <ToggleGroup
+          type="multiple"
+          value={[
+            ...(layer.fontWeight >= 700 ? ["bold"] : []),
+            ...(layer.fontStyle === "italic" ? ["italic"] : []),
+            ...(layer.underline ? ["underline"] : []),
+          ]}
+          onValueChange={(value) =>
+            updateLayer(
+              layer.id,
+              {
+                fontWeight: value.includes("bold") ? 700 : 400,
+                fontStyle: value.includes("italic") ? "italic" : "normal",
+                underline: value.includes("underline"),
+              },
+              { commit: true },
+            )
+          }
+          className="w-full"
+        >
+          <ToggleGroupItem value="bold" className="flex-1" aria-label="Bold">
+            <Bold className="size-4" />
+          </ToggleGroupItem>
+          <ToggleGroupItem value="italic" className="flex-1" aria-label="Italic">
+            <Italic className="size-4" />
+          </ToggleGroupItem>
+          <ToggleGroupItem value="underline" className="flex-1" aria-label="Underline">
+            <Underline className="size-4" />
+          </ToggleGroupItem>
+        </ToggleGroup>
       </div>
 
       <div className="space-y-2">

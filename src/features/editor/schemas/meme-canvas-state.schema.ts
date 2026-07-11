@@ -67,6 +67,7 @@ export const textLayerSchema = baseLayerSchema.extend({
   fontSize: z.number().default(48),
   fontWeight: z.number().default(700),
   fontStyle: z.enum(["normal", "italic"]).default("normal"),
+  underline: z.boolean().default(false),
   color: z.string().default("#ffffff"),
   textAlign: z.enum(["left", "center", "right"]).default("center"),
   letterSpacing: z.number().default(0),

@@ -32,6 +32,7 @@ export function createTextLayer(
     fontSize: 64,
     fontWeight: 700,
     fontStyle: "normal",
+    underline: false,
     color: "#ffffff",
     textAlign: "center",
     letterSpacing: 0,

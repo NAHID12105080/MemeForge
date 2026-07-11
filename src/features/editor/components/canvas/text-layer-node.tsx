@@ -59,6 +59,7 @@ export function TextLayerNode({
       fontFamily={layer.fontFamily}
       fontSize={layer.fontSize}
       fontStyle={`${layer.fontWeight >= 700 ? "bold" : "normal"} ${layer.fontStyle}`.trim()}
+      textDecoration={layer.underline ? "underline" : ""}
       align={layer.textAlign}
       letterSpacing={layer.letterSpacing}
       lineHeight={layer.lineHeight}
