@@ -5,6 +5,7 @@ import type { Layer, MemeCanvasState } from "@/features/editor/schemas/meme-canv
 const MAX_HISTORY = 50;
 
 export type EditorTool = "select" | "text" | "shape" | "pan";
+export type AlignEdge = "left" | "center-h" | "right" | "top" | "center-v" | "bottom";
 
 interface Viewport {
   zoom: number;
@@ -41,6 +42,8 @@ interface EditorStoreState {
   toggleHidden: (id: string) => void;
   groupSelected: () => void;
   ungroup: (groupId: string) => void;
+  alignSelected: (edge: AlignEdge) => void;
+  distributeSelected: (axis: "horizontal" | "vertical") => void;
 
   setSelection: (ids: string[]) => void;
   toggleSelection: (id: string) => void;
@@ -283,6 +286,81 @@ export const useEditorStore = create<EditorStoreState>((set, get) => ({
         isDirty: true,
       };
     });
+  },
+
+  alignSelected: (edge) => {
+    const { selectedLayerIds, canvasState } = get();
+    const layers = canvasState.layers.filter((layer) => selectedLayerIds.includes(layer.id));
+    if (layers.length === 0) return;
+
+    const bounds =
+      layers.length === 1
+        ? { x: 0, y: 0, width: canvasState.canvas.width, height: canvasState.canvas.height }
+        : (() => {
+            const minX = Math.min(...layers.map((l) => l.x));
+            const minY = Math.min(...layers.map((l) => l.y));
+            const maxX = Math.max(...layers.map((l) => l.x + l.width));
+            const maxY = Math.max(...layers.map((l) => l.y + l.height));
+            return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+          })();
+
+    get().commitHistory();
+    set((state) => ({
+      canvasState: {
+        ...state.canvasState,
+        layers: state.canvasState.layers.map((layer) => {
+          if (!selectedLayerIds.includes(layer.id)) return layer;
+          switch (edge) {
+            case "left":
+              return { ...layer, x: bounds.x };
+            case "center-h":
+              return { ...layer, x: bounds.x + bounds.width / 2 - layer.width / 2 };
+            case "right":
+              return { ...layer, x: bounds.x + bounds.width - layer.width };
+            case "top":
+              return { ...layer, y: bounds.y };
+            case "center-v":
+              return { ...layer, y: bounds.y + bounds.height / 2 - layer.height / 2 };
+            case "bottom":
+              return { ...layer, y: bounds.y + bounds.height - layer.height };
+          }
+        }),
+      },
+      isDirty: true,
+    }));
+  },
+
+  distributeSelected: (axis) => {
+    const { selectedLayerIds, canvasState } = get();
+    const layers = canvasState.layers.filter((layer) => selectedLayerIds.includes(layer.id));
+    if (layers.length < 3) return;
+
+    const key = axis === "horizontal" ? "x" : "y";
+    const sizeKey = axis === "horizontal" ? "width" : "height";
+    const sorted = [...layers].sort((a, b) => a[key] - b[key]);
+    const first = sorted[0];
+    const last = sorted[sorted.length - 1];
+    const totalSize = sorted.reduce((sum, l) => sum + l[sizeKey], 0);
+    const span = last[key] + last[sizeKey] - first[key];
+    const gap = (span - totalSize) / (sorted.length - 1);
+
+    const positions = new Map<string, number>();
+    let cursor = first[key];
+    for (const layer of sorted) {
+      positions.set(layer.id, cursor);
+      cursor += layer[sizeKey] + gap;
+    }
+
+    get().commitHistory();
+    set((state) => ({
+      canvasState: {
+        ...state.canvasState,
+        layers: state.canvasState.layers.map((layer) =>
+          positions.has(layer.id) ? { ...layer, [key]: positions.get(layer.id)! } : layer,
+        ),
+      },
+      isDirty: true,
+    }));
   },
 
   setSelection: (ids) => set({ selectedLayerIds: ids }),

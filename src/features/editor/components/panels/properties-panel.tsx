@@ -3,6 +3,8 @@
 import { Group, Ungroup } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { AlignmentToolbar } from "@/features/editor/components/panels/alignment-toolbar";
 import { CommonLayerControls } from "@/features/editor/components/panels/common-layer-controls";
 import { ImagePropertiesPanel } from "@/features/editor/components/panels/image-properties-panel";
 import { ShapePropertiesPanel } from "@/features/editor/components/panels/shape-properties-panel";
@@ -25,7 +27,9 @@ export function PropertiesPanel() {
 
   if (selectedLayerIds.length > 1) {
     return (
-      <div className="p-3">
+      <div className="space-y-3 p-3">
+        <AlignmentToolbar />
+        <Separator />
         <Button variant="outline" size="sm" className="w-full" onClick={groupSelected}>
           <Group className="size-3.5" />
           Group {selectedLayerIds.length} layers
@@ -37,34 +41,46 @@ export function PropertiesPanel() {
   const selectedLayer = layers.find((layer) => layer.id === selectedLayerIds[0]);
   if (!selectedLayer) return null;
 
-  switch (selectedLayer.type) {
-    case "text":
-      return <TextPropertiesPanel layer={selectedLayer} />;
-    case "image":
-      return <ImagePropertiesPanel layer={selectedLayer} />;
-    case "shape":
-      return <ShapePropertiesPanel layer={selectedLayer} />;
-    case "sticker":
-      return (
-        <div className="space-y-5 p-3">
-          <CommonLayerControls layer={selectedLayer} />
-        </div>
-      );
-    case "group":
-      return (
-        <div className="p-3">
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full"
-            onClick={() => ungroup(selectedLayer.id)}
-          >
-            <Ungroup className="size-3.5" />
-            Ungroup
-          </Button>
-        </div>
-      );
-    default:
-      return null;
-  }
+  const typePanel = (() => {
+    switch (selectedLayer.type) {
+      case "text":
+        return <TextPropertiesPanel layer={selectedLayer} />;
+      case "image":
+        return <ImagePropertiesPanel layer={selectedLayer} />;
+      case "shape":
+        return <ShapePropertiesPanel layer={selectedLayer} />;
+      case "sticker":
+        return (
+          <div className="space-y-5 p-3">
+            <CommonLayerControls layer={selectedLayer} />
+          </div>
+        );
+      case "group":
+        return (
+          <div className="p-3">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={() => ungroup(selectedLayer.id)}
+            >
+              <Ungroup className="size-3.5" />
+              Ungroup
+            </Button>
+          </div>
+        );
+      default:
+        return null;
+    }
+  })();
+
+  return (
+    <div className="space-y-3">
+      <div className="space-y-3 px-3 pt-3">
+        <AlignmentToolbar />
+        <Separator />
+      </div>
+      {typePanel}
+    </div>
+  );
 }
