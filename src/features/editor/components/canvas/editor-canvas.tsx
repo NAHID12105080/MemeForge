@@ -29,6 +29,7 @@ export function EditorCanvas() {
   const viewport = useEditorStore((s) => s.viewport);
   const setViewport = useEditorStore((s) => s.setViewport);
   const tool = useEditorStore((s) => s.tool);
+  const setStageNode = useEditorStore((s) => s.setStageNode);
   const { addImageFromFile } = useAddImageLayer();
 
   useEffect(() => {
@@ -186,7 +187,10 @@ export function EditorCanvas() {
       onDragOver={(event) => event.preventDefault()}
     >
       <Stage
-        ref={stageRef}
+        ref={(node) => {
+          stageRef.current = node;
+          setStageNode(node);
+        }}
         width={containerSize.width}
         height={containerSize.height}
         scaleX={scale}

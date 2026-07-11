@@ -5,11 +5,42 @@ import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import type Konva from "konva";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { saveMemeThumbnailAction } from "@/features/editor/actions/save-meme-thumbnail.action";
 import { saveMemeAction } from "@/features/editor/actions/save-meme.action";
 import { CanvasSizePopover } from "@/features/editor/components/toolbar/canvas-size-popover";
+import { DownloadButton } from "@/features/editor/components/toolbar/download-button";
+import { dataURLToBlob, rasterizeStageDataURL } from "@/features/editor/lib/export/rasterize-stage";
+import type { MemeCanvasState } from "@/features/editor/schemas/meme-canvas-state.schema";
 import { useEditorStore } from "@/features/editor/store/editor-store";
+
+// Best-effort: a broken thumbnail should never fail the actual save, so
+// errors are logged, not surfaced to the user.
+async function generateThumbnail(
+  stageNode: Konva.Stage,
+  memeId: string,
+  canvasState: MemeCanvasState,
+) {
+  try {
+    const longestSide = Math.max(canvasState.canvas.width, canvasState.canvas.height);
+    const pixelRatio = Math.min(1, 480 / longestSide);
+    const dataURL = rasterizeStageDataURL(
+      stageNode,
+      canvasState.canvas.width,
+      canvasState.canvas.height,
+      { mimeType: "image/png", pixelRatio },
+    );
+    const blob = await dataURLToBlob(dataURL);
+    const formData = new FormData();
+    formData.set("file", blob, "thumbnail.png");
+    await saveMemeThumbnailAction(memeId, formData);
+  } catch (error) {
+    console.error("Failed to generate thumbnail", error);
+  }
+}
 
 export function EditorTopBar() {
   const title = useEditorStore((s) => s.title);
@@ -24,12 +55,16 @@ export function EditorTopBar() {
 
   async function handleSave() {
     setIsSaving(true);
-    const { memeId, title, canvasState } = useEditorStore.getState();
+    const { memeId, title, canvasState, stageNode } = useEditorStore.getState();
     try {
       const result = await saveMemeAction({ memeId, title, canvasState });
       useEditorStore.setState({ memeId: result.id, isDirty: false });
       toast.success("Meme saved");
       window.history.replaceState(null, "", `/editor/${result.id}`);
+
+      if (stageNode) {
+        void generateThumbnail(stageNode, result.id, canvasState);
+      }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to save");
     } finally {
@@ -76,6 +111,7 @@ export function EditorTopBar() {
       </div>
       <CanvasSizePopover />
       <div className="ml-auto flex items-center gap-2">
+        <DownloadButton />
         <Button size="sm" onClick={handleSave} disabled={isSaving || !isDirty}>
           {isSaving ? <Loader2 className="size-4 animate-spin" /> : null}
           Save

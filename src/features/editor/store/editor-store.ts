@@ -1,3 +1,4 @@
+import type Konva from "konva";
 import { create } from "zustand";
 
 import type { Layer, MemeCanvasState } from "@/features/editor/schemas/meme-canvas-state.schema";
@@ -22,8 +23,12 @@ interface EditorStoreState {
   tool: EditorTool;
   history: { past: MemeCanvasState[]; future: MemeCanvasState[] };
   isDirty: boolean;
+  // Imperative handle to the live Konva Stage, for export. Not part of
+  // undo/redo history — it's a DOM-adjacent ref, not editor state.
+  stageNode: Konva.Stage | null;
 
   setTitle: (title: string) => void;
+  setStageNode: (node: Konva.Stage | null) => void;
   loadMeme: (memeId: string | null, title: string, canvasState: MemeCanvasState) => void;
   markSaved: () => void;
 
@@ -73,8 +78,10 @@ export const useEditorStore = create<EditorStoreState>((set, get) => ({
   tool: "select",
   history: { past: [], future: [] },
   isDirty: false,
+  stageNode: null,
 
   setTitle: (title) => set({ title, isDirty: true }),
+  setStageNode: (node) => set({ stageNode: node }),
 
   loadMeme: (memeId, title, canvasState) =>
     set({
