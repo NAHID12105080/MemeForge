@@ -6,12 +6,15 @@ import { Layer as KonvaLayer, Rect, Stage, Transformer } from "react-konva";
 
 import { LayerRenderer } from "@/features/editor/components/canvas/layer-renderer";
 import { type GuideLine, SnapGuides } from "@/features/editor/components/canvas/snap-guides";
+import { useFontsReadyTick } from "@/features/editor/lib/fonts/google-fonts-loader";
+import { useAddImageLayer } from "@/features/editor/lib/layers/use-add-image-layer";
 import type { Layer } from "@/features/editor/schemas/meme-canvas-state.schema";
 import { useEditorStore } from "@/features/editor/store/editor-store";
 
 const SNAP_THRESHOLD = 6;
 
 export function EditorCanvas() {
+  useFontsReadyTick();
   const containerRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<Konva.Stage>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
@@ -26,6 +29,7 @@ export function EditorCanvas() {
   const viewport = useEditorStore((s) => s.viewport);
   const setViewport = useEditorStore((s) => s.setViewport);
   const tool = useEditorStore((s) => s.tool);
+  const { addImageFromFile } = useAddImageLayer();
 
   useEffect(() => {
     const el = containerRef.current;
@@ -63,6 +67,8 @@ export function EditorCanvas() {
     1,
   );
   const scale = fitScale * viewport.zoom;
+  const stageX = containerSize.width / 2 - (canvasWidth * scale) / 2 + viewport.panX;
+  const stageY = containerSize.height / 2 - (canvasHeight * scale) / 2 + viewport.panY;
 
   function registerRef(id: string, node: Konva.Node | null) {
     if (node) nodeRefs.current.set(id, node);
@@ -133,18 +139,60 @@ export function EditorCanvas() {
     setViewport({ zoom: nextZoom });
   }
 
+  function screenToCanvasPoint(clientX: number, clientY: number) {
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return { x: canvasWidth / 2, y: canvasHeight / 2 };
+    return {
+      x: (clientX - rect.left - stageX) / scale,
+      y: (clientY - rect.top - stageY) / scale,
+    };
+  }
+
+  function handleDrop(event: React.DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    const file = event.dataTransfer.files?.[0];
+    if (!file || !file.type.startsWith("image/")) return;
+    const point = screenToCanvasPoint(event.clientX, event.clientY);
+    addImageFromFile(file, point);
+  }
+
+  useEffect(() => {
+    function handlePaste(event: ClipboardEvent) {
+      const items = event.clipboardData?.items;
+      if (!items) return;
+      for (const item of items) {
+        if (item.type.startsWith("image/")) {
+          const file = item.getAsFile();
+          if (file) {
+            addImageFromFile(file, { x: canvasWidth / 2, y: canvasHeight / 2 });
+          }
+          event.preventDefault();
+          return;
+        }
+      }
+    }
+    document.addEventListener("paste", handlePaste);
+    return () => document.removeEventListener("paste", handlePaste);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canvasWidth, canvasHeight]);
+
   const sortedLayers = [...canvasState.layers].sort((a, b) => a.zIndex - b.zIndex);
 
   return (
-    <div ref={containerRef} className="bg-muted/40 relative h-full w-full overflow-hidden">
+    <div
+      ref={containerRef}
+      className="bg-muted/40 relative h-full w-full overflow-hidden"
+      onDrop={handleDrop}
+      onDragOver={(event) => event.preventDefault()}
+    >
       <Stage
         ref={stageRef}
         width={containerSize.width}
         height={containerSize.height}
         scaleX={scale}
         scaleY={scale}
-        x={containerSize.width / 2 - (canvasWidth * scale) / 2 + viewport.panX}
-        y={containerSize.height / 2 - (canvasHeight * scale) / 2 + viewport.panY}
+        x={stageX}
+        y={stageY}
         draggable={tool === "pan"}
         onWheel={handleWheel}
         onMouseDown={handleStageMouseDown}
