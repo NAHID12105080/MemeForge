@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { saveMemeAction } from "@/features/editor/actions/save-meme.action";
+import { CanvasSizePopover } from "@/features/editor/components/toolbar/canvas-size-popover";
 import { useEditorStore } from "@/features/editor/store/editor-store";
 
 export function EditorTopBar() {
@@ -73,6 +74,7 @@ export function EditorTopBar() {
           <ZoomIn className="size-4" />
         </Button>
       </div>
+      <CanvasSizePopover />
       <div className="ml-auto flex items-center gap-2">
         <Button size="sm" onClick={handleSave} disabled={isSaving || !isDirty}>
           {isSaving ? <Loader2 className="size-4 animate-spin" /> : null}

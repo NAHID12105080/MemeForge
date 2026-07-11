@@ -32,6 +32,7 @@ interface EditorStoreState {
   undo: () => void;
   redo: () => void;
 
+  resizeCanvas: (width: number, height: number) => void;
   addLayer: (layer: Layer) => void;
   updateLayer: (id: string, patch: Partial<Layer>, options?: { commit?: boolean }) => void;
   removeLayer: (id: string) => void;
@@ -113,6 +114,17 @@ export const useEditorStore = create<EditorStoreState>((set, get) => ({
       const past = [...state.history.past, cloneState(state.canvasState)];
       return { canvasState: next, history: { past, future }, isDirty: true };
     }),
+
+  resizeCanvas: (width, height) => {
+    get().commitHistory();
+    set((state) => ({
+      canvasState: {
+        ...state.canvasState,
+        canvas: { ...state.canvasState.canvas, width, height },
+      },
+      isDirty: true,
+    }));
+  },
 
   addLayer: (layer) => {
     get().commitHistory();
