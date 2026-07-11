@@ -1,7 +1,19 @@
 import { getSessionCookie } from "better-auth/cookies";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PROTECTED_PREFIXES = ["/dashboard", "/collections", "/favorites", "/settings"];
+const PROTECTED_PREFIXES = [
+  "/dashboard",
+  "/collections",
+  "/favorites",
+  "/settings",
+  "/templates",
+  "/explore",
+  "/trending",
+  "/search",
+  "/ai-generator",
+  "/gif-generator",
+  "/profile",
+];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -22,5 +34,17 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/collections/:path*", "/favorites/:path*", "/settings/:path*"],
+  matcher: [
+    "/dashboard/:path*",
+    "/collections/:path*",
+    "/favorites/:path*",
+    "/settings/:path*",
+    "/templates/:path*",
+    "/explore/:path*",
+    "/trending/:path*",
+    "/search/:path*",
+    "/ai-generator/:path*",
+    "/gif-generator/:path*",
+    "/profile/:path*",
+  ],
 };

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 
 import { SignInForm } from "@/features/auth/components/sign-in-form";
 
@@ -14,7 +15,9 @@ export default function SignInPage() {
         <h1 className="font-heading text-xl font-semibold">Welcome back</h1>
         <p className="text-muted-foreground text-sm">Sign in to keep creating.</p>
       </div>
-      <SignInForm />
+      <Suspense fallback={null}>
+        <SignInForm />
+      </Suspense>
       <p className="text-muted-foreground text-center text-sm">
         Don&apos;t have an account?{" "}
         <Link href="/sign-up" className="text-foreground font-medium underline underline-offset-4">

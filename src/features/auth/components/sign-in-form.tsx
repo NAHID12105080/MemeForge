@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -15,6 +15,12 @@ import { type SignInInput, signInSchema } from "@/features/auth/schemas/auth.sch
 
 export function SignInForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const requestedRedirect = searchParams.get("redirect");
+  const redirectTo =
+    requestedRedirect && requestedRedirect.startsWith("/") && !requestedRedirect.startsWith("//")
+      ? requestedRedirect
+      : "/dashboard";
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<SignInInput>({
@@ -35,7 +41,7 @@ export function SignInForm() {
       return;
     }
 
-    router.push("/dashboard");
+    router.push(redirectTo);
     router.refresh();
   }
 
