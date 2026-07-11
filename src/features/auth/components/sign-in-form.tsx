@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth/auth-client";
+import { OAuthButtons } from "@/features/auth/components/oauth-buttons";
 import { type SignInInput, signInSchema } from "@/features/auth/schemas/auth.schema";
 
 export function SignInForm() {
@@ -46,35 +47,38 @@ export function SignInForm() {
   }
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} noValidate>
-      <FieldGroup>
-        <Field data-invalid={!!form.formState.errors.email}>
-          <FieldLabel htmlFor="email">Email</FieldLabel>
-          <Input
-            id="email"
-            type="email"
-            autoComplete="email"
-            placeholder="you@example.com"
-            {...form.register("email")}
-          />
-          <FieldError errors={[form.formState.errors.email]} />
-        </Field>
-        <Field data-invalid={!!form.formState.errors.password}>
-          <FieldLabel htmlFor="password">Password</FieldLabel>
-          <Input
-            id="password"
-            type="password"
-            autoComplete="current-password"
-            placeholder="••••••••"
-            {...form.register("password")}
-          />
-          <FieldError errors={[form.formState.errors.password]} />
-        </Field>
-        <Button type="submit" disabled={isSubmitting} className="w-full">
-          {isSubmitting ? <Loader2 className="animate-spin" /> : null}
-          Sign in
-        </Button>
-      </FieldGroup>
-    </form>
+    <div className="space-y-4">
+      <OAuthButtons callbackURL={redirectTo} />
+      <form onSubmit={form.handleSubmit(onSubmit)} noValidate>
+        <FieldGroup>
+          <Field data-invalid={!!form.formState.errors.email}>
+            <FieldLabel htmlFor="email">Email</FieldLabel>
+            <Input
+              id="email"
+              type="email"
+              autoComplete="email"
+              placeholder="you@example.com"
+              {...form.register("email")}
+            />
+            <FieldError errors={[form.formState.errors.email]} />
+          </Field>
+          <Field data-invalid={!!form.formState.errors.password}>
+            <FieldLabel htmlFor="password">Password</FieldLabel>
+            <Input
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              placeholder="••••••••"
+              {...form.register("password")}
+            />
+            <FieldError errors={[form.formState.errors.password]} />
+          </Field>
+          <Button type="submit" disabled={isSubmitting} className="w-full">
+            {isSubmitting ? <Loader2 className="animate-spin" /> : null}
+            Sign in
+          </Button>
+        </FieldGroup>
+      </form>
+    </div>
   );
 }
