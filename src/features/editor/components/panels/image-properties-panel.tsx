@@ -1,6 +1,6 @@
 "use client";
 
-import { FlipHorizontal2, FlipVertical2, RotateCcw } from "lucide-react";
+import { Check, Crop, FlipHorizontal2, FlipVertical2, RotateCcw, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -22,6 +22,11 @@ const DEFAULT_FILTERS: ImageLayer["filters"] = {
 
 export function ImagePropertiesPanel({ layer }: { layer: ImageLayer }) {
   const updateLayer = useEditorStore((s) => s.updateLayer);
+  const cropModeLayerId = useEditorStore((s) => s.cropModeLayerId);
+  const enterCropMode = useEditorStore((s) => s.enterCropMode);
+  const applyCrop = useEditorStore((s) => s.applyCrop);
+  const cancelCrop = useEditorStore((s) => s.cancelCrop);
+  const isCropping = cropModeLayerId === layer.id;
 
   function setFilter(key: keyof ImageLayer["filters"], value: number) {
     updateLayer(layer.id, { filters: { ...layer.filters, [key]: value } });
@@ -31,8 +36,33 @@ export function ImagePropertiesPanel({ layer }: { layer: ImageLayer }) {
     updateLayer(layer.id, { filters: { ...layer.filters, [key]: value } }, { commit: true });
   }
 
+  if (isCropping) {
+    return (
+      <div className="space-y-3 p-3">
+        <p className="text-muted-foreground text-xs">
+          Drag the handles on the canvas to select the crop area.
+        </p>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" className="flex-1" onClick={cancelCrop}>
+            <X className="size-3.5" />
+            Cancel
+          </Button>
+          <Button size="sm" className="flex-1" onClick={applyCrop}>
+            <Check className="size-3.5" />
+            Apply
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-5 p-3">
+      <Button variant="outline" size="sm" className="w-full" onClick={() => enterCropMode(layer.id)}>
+        <Crop className="size-3.5" />
+        Crop
+      </Button>
+
       <div className="flex gap-2">
         <Button
           variant={layer.flipX ? "default" : "outline"}

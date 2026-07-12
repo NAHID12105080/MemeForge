@@ -13,6 +13,13 @@ interface Viewport {
   panY: number;
 }
 
+export interface CropRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 interface EditorStoreState {
   memeId: string | null;
   title: string;
@@ -24,6 +31,11 @@ interface EditorStoreState {
   // Imperative handle to the live Konva Stage, for export. Not part of
   // undo/redo history — it's a DOM-adjacent ref, not editor state.
   stageNode: Konva.Stage | null;
+  // Which image layer (if any) is currently in Crop mode, and the
+  // in-progress crop rect for it. Neither is part of undo/redo history —
+  // Apply/Cancel are the only ways they resolve into a committed layer change.
+  cropModeLayerId: string | null;
+  cropDraft: CropRect | null;
 
   setTitle: (title: string) => void;
   setStageNode: (node: Konva.Stage | null) => void;
@@ -44,6 +56,10 @@ interface EditorStoreState {
   reorderLayer: (id: string, direction: "up" | "down") => void;
   toggleLock: (id: string) => void;
   toggleHidden: (id: string) => void;
+  enterCropMode: (layerId: string) => void;
+  setCropDraft: (crop: CropRect) => void;
+  applyCrop: () => void;
+  cancelCrop: () => void;
   groupSelected: () => void;
   ungroup: (groupId: string) => void;
   alignSelected: (edge: AlignEdge) => void;
@@ -75,6 +91,8 @@ export const useEditorStore = create<EditorStoreState>((set, get) => ({
   history: { past: [], future: [] },
   isDirty: false,
   stageNode: null,
+  cropModeLayerId: null,
+  cropDraft: null,
 
   setTitle: (title) => set({ title, isDirty: true }),
   setStageNode: (node) => set({ stageNode: node }),
@@ -244,6 +262,34 @@ export const useEditorStore = create<EditorStoreState>((set, get) => ({
       },
       isDirty: true,
     })),
+
+  enterCropMode: (layerId) => set({ cropModeLayerId: layerId, cropDraft: null }),
+
+  setCropDraft: (crop) => set({ cropDraft: crop }),
+
+  applyCrop: () => {
+    const { cropModeLayerId, cropDraft } = get();
+    if (!cropModeLayerId || !cropDraft) {
+      set({ cropModeLayerId: null, cropDraft: null });
+      return;
+    }
+    get().commitHistory();
+    set((state) => ({
+      canvasState: {
+        ...state.canvasState,
+        layers: state.canvasState.layers.map((layer) =>
+          layer.id === cropModeLayerId && layer.type === "image"
+            ? { ...layer, crop: cropDraft }
+            : layer,
+        ),
+      },
+      cropModeLayerId: null,
+      cropDraft: null,
+      isDirty: true,
+    }));
+  },
+
+  cancelCrop: () => set({ cropModeLayerId: null, cropDraft: null }),
 
   groupSelected: () => {
     const { selectedLayerIds, canvasState } = get();

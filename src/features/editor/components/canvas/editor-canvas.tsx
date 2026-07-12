@@ -4,6 +4,7 @@ import Konva from "konva";
 import { useEffect, useRef, useState } from "react";
 import { Layer as KonvaLayer, Rect, Stage, Transformer } from "react-konva";
 
+import { CropOverlay } from "@/features/editor/components/canvas/crop-overlay";
 import { LayerRenderer } from "@/features/editor/components/canvas/layer-renderer";
 import { type GuideLine, SnapGuides } from "@/features/editor/components/canvas/snap-guides";
 import { useFontsReadyTick } from "@/features/editor/lib/fonts/google-fonts-loader";
@@ -29,6 +30,7 @@ export function EditorCanvas() {
   const viewport = useEditorStore((s) => s.viewport);
   const setViewport = useEditorStore((s) => s.setViewport);
   const setStageNode = useEditorStore((s) => s.setStageNode);
+  const cropModeLayerId = useEditorStore((s) => s.cropModeLayerId);
   const { addImageFromFile } = useAddImageLayer();
   const [isSpacePressed, setIsSpacePressed] = useState(false);
 
@@ -86,11 +88,12 @@ export function EditorCanvas() {
     });
 
     const nodes = expandedIds
+      .filter((id) => id !== cropModeLayerId)
       .map((id) => nodeRefs.current.get(id))
       .filter((node): node is Konva.Node => !!node);
     transformer.nodes(nodes);
     transformer.getLayer()?.batchDraw();
-  }, [selectedLayerIds, canvasState.layers]);
+  }, [selectedLayerIds, canvasState.layers, cropModeLayerId]);
 
   const { width: canvasWidth, height: canvasHeight } = canvasState.canvas;
   const fitScale = Math.min(
@@ -267,7 +270,9 @@ export function EditorCanvas() {
           {sortedLayers.map((layer) => (
             <LayerRenderer
               key={layer.id}
-              layer={layer}
+              // While a layer is in Crop mode, its own drag/select/resize
+              // interactions are replaced by the CropOverlay's handles.
+              layer={layer.id === cropModeLayerId ? { ...layer, locked: true } : layer}
               onSelect={(event) => handleSelect(layer.id, event)}
               onChange={(patch, options) => {
                 updateLayer(layer.id, patch as Partial<Layer>, options);
@@ -277,6 +282,14 @@ export function EditorCanvas() {
               registerRef={registerRef}
             />
           ))}
+          {(() => {
+            const cropLayer = canvasState.layers.find(
+              (layer) => layer.id === cropModeLayerId && layer.type === "image",
+            );
+            return cropLayer && cropLayer.type === "image" ? (
+              <CropOverlay layer={cropLayer} />
+            ) : null;
+          })()}
           <SnapGuides guides={guides} canvasWidth={canvasWidth} canvasHeight={canvasHeight} />
           <Transformer
             ref={transformerRef}
