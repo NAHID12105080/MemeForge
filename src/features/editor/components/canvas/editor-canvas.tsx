@@ -28,9 +28,9 @@ export function EditorCanvas() {
   const updateLayer = useEditorStore((s) => s.updateLayer);
   const viewport = useEditorStore((s) => s.viewport);
   const setViewport = useEditorStore((s) => s.setViewport);
-  const tool = useEditorStore((s) => s.tool);
   const setStageNode = useEditorStore((s) => s.setStageNode);
   const { addImageFromFile } = useAddImageLayer();
+  const [isSpacePressed, setIsSpacePressed] = useState(false);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -43,6 +43,37 @@ export function EditorCanvas() {
     });
     observer.observe(el);
     return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    function isEditableTarget(target: EventTarget | null) {
+      if (!(target instanceof HTMLElement)) return false;
+      return target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable;
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.code !== "Space" || event.repeat || isEditableTarget(event.target)) return;
+      event.preventDefault();
+      setIsSpacePressed(true);
+    }
+
+    function handleKeyUp(event: KeyboardEvent) {
+      if (event.code !== "Space") return;
+      setIsSpacePressed(false);
+    }
+
+    function handleBlur() {
+      setIsSpacePressed(false);
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+    window.addEventListener("blur", handleBlur);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+      window.removeEventListener("blur", handleBlur);
+    };
   }, []);
 
   useEffect(() => {
@@ -91,6 +122,7 @@ export function EditorCanvas() {
   }
 
   function handleStageMouseDown(event: Konva.KonvaEventObject<MouseEvent>) {
+    if (isSpacePressed) return;
     if (event.target === event.target.getStage()) {
       setSelection([]);
     }
@@ -135,9 +167,19 @@ export function EditorCanvas() {
 
   function handleWheel(event: Konva.KonvaEventObject<WheelEvent>) {
     event.evt.preventDefault();
-    const delta = -event.evt.deltaY;
-    const nextZoom = Math.min(4, Math.max(0.25, viewport.zoom * (delta > 0 ? 1.05 : 0.95)));
-    setViewport({ zoom: nextZoom });
+    // Trackpad pinch gestures are synthesized by the browser as wheel events
+    // with ctrlKey set, so that's the signal we use to distinguish "zoom"
+    // from a plain two-finger pan (which carries no ctrlKey).
+    if (event.evt.ctrlKey) {
+      const delta = -event.evt.deltaY;
+      const nextZoom = Math.min(4, Math.max(0.25, viewport.zoom * (delta > 0 ? 1.05 : 0.95)));
+      setViewport({ zoom: nextZoom });
+      return;
+    }
+    setViewport({
+      panX: viewport.panX - event.evt.deltaX,
+      panY: viewport.panY - event.evt.deltaY,
+    });
   }
 
   function screenToCanvasPoint(clientX: number, clientY: number) {
@@ -183,6 +225,7 @@ export function EditorCanvas() {
     <div
       ref={containerRef}
       className="bg-muted/40 relative h-full w-full overflow-hidden"
+      style={{ cursor: isSpacePressed ? "grab" : "default" }}
       onDrop={handleDrop}
       onDragOver={(event) => event.preventDefault()}
     >
@@ -197,7 +240,7 @@ export function EditorCanvas() {
         scaleY={scale}
         x={stageX}
         y={stageY}
-        draggable={tool === "pan"}
+        draggable={isSpacePressed}
         onWheel={handleWheel}
         onMouseDown={handleStageMouseDown}
         onDragEnd={(event) => {
@@ -209,7 +252,7 @@ export function EditorCanvas() {
           }
         }}
       >
-        <KonvaLayer>
+        <KonvaLayer listening={!isSpacePressed}>
           <Rect
             x={0}
             y={0}

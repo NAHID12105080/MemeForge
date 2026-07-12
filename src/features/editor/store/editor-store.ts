@@ -5,7 +5,6 @@ import type { Layer, MemeCanvasState } from "@/features/editor/schemas/meme-canv
 
 const MAX_HISTORY = 50;
 
-export type EditorTool = "select" | "text" | "shape" | "pan";
 export type AlignEdge = "left" | "center-h" | "right" | "top" | "center-v" | "bottom";
 
 interface Viewport {
@@ -20,7 +19,6 @@ interface EditorStoreState {
   canvasState: MemeCanvasState;
   selectedLayerIds: string[];
   viewport: Viewport;
-  tool: EditorTool;
   history: { past: MemeCanvasState[]; future: MemeCanvasState[] };
   isDirty: boolean;
   // Imperative handle to the live Konva Stage, for export. Not part of
@@ -55,7 +53,6 @@ interface EditorStoreState {
   toggleSelection: (id: string) => void;
   clearSelection: () => void;
 
-  setTool: (tool: EditorTool) => void;
   setViewport: (viewport: Partial<Viewport>) => void;
 }
 
@@ -75,7 +72,6 @@ export const useEditorStore = create<EditorStoreState>((set, get) => ({
   canvasState: emptyCanvasState,
   selectedLayerIds: [],
   viewport: { zoom: 1, panX: 0, panY: 0 },
-  tool: "select",
   history: { past: [], future: [] },
   isDirty: false,
   stageNode: null,
@@ -391,6 +387,5 @@ export const useEditorStore = create<EditorStoreState>((set, get) => ({
     })),
   clearSelection: () => set({ selectedLayerIds: [] }),
 
-  setTool: (tool) => set({ tool }),
   setViewport: (viewport) => set((state) => ({ viewport: { ...state.viewport, ...viewport } })),
 }));
