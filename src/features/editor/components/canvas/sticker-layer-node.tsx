@@ -1,9 +1,17 @@
 import Konva from "konva";
 import { useRef } from "react";
-import { Image as KonvaImage, Text } from "react-konva";
+import { Group, Image as KonvaImage, Text } from "react-konva";
 import useImage from "use-image";
 
 import type { StickerLayer } from "@/features/editor/schemas/meme-canvas-state.schema";
+
+// Color emoji glyphs render noticeably wider than their fontSize (~1.25x in
+// Chromium, varies by platform font). If a Konva.Text's `width` is smaller
+// than a line's actual rendered width, Konva drops the line entirely instead
+// of overflowing — the glyph silently disappears while the node (and its
+// resize/rotate handles) still behaves normally. Sizing the inner Text's box
+// generously avoids ever triggering that path.
+const EMOJI_SAFE_BOX_RATIO = 2;
 
 interface StickerLayerNodeProps {
   layer: StickerLayer;
@@ -62,20 +70,29 @@ export function StickerLayerNode({
   };
 
   if (layer.assetKind === "emoji" && layer.unicodeChar) {
+    const safeBoxSize = layer.height * EMOJI_SAFE_BOX_RATIO;
     return (
-      <Text
+      <Group
         ref={(node) => {
           nodeRef.current = node;
           registerRef(node);
         }}
         {...common}
-        text={layer.unicodeChar}
-        fontSize={layer.height}
         width={layer.width}
         height={layer.height}
-        align="center"
-        verticalAlign="middle"
-      />
+      >
+        <Text
+          text={layer.unicodeChar}
+          fontSize={layer.height}
+          x={layer.width / 2 - safeBoxSize / 2}
+          y={layer.height / 2 - safeBoxSize / 2}
+          width={safeBoxSize}
+          height={safeBoxSize}
+          align="center"
+          verticalAlign="middle"
+          listening={false}
+        />
+      </Group>
     );
   }
 
