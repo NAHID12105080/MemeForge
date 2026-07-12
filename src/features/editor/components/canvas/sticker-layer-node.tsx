@@ -10,8 +10,10 @@ import type { StickerLayer } from "@/features/editor/schemas/meme-canvas-state.s
 // than a line's actual rendered width, Konva drops the line entirely instead
 // of overflowing — the glyph silently disappears while the node (and its
 // resize/rotate handles) still behaves normally. Sizing the inner Text's box
-// generously avoids ever triggering that path.
-const EMOJI_SAFE_BOX_RATIO = 2;
+// generously avoids ever triggering that path. This Text is also what gives
+// the enclosing Group its hit region (a Group has no shape of its own), so
+// this also sets how far past the glyph clicks/drags are still picked up.
+const EMOJI_SAFE_BOX_RATIO = 1.5;
 
 interface StickerLayerNodeProps {
   layer: StickerLayer;
@@ -90,7 +92,6 @@ export function StickerLayerNode({
           height={safeBoxSize}
           align="center"
           verticalAlign="middle"
-          listening={false}
         />
       </Group>
     );
