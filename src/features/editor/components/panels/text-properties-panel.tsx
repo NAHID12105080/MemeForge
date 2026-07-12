@@ -2,6 +2,12 @@
 
 import { Bold, Italic, Underline } from "lucide-react";
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { ColorPickerPopover } from "@/components/composed/color-picker-popover";
 import { FontPicker } from "@/components/composed/font-picker";
 import { Label } from "@/components/ui/label";
@@ -16,7 +22,10 @@ import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { CommonLayerControls } from "@/features/editor/components/panels/common-layer-controls";
+import {
+  CommonLayerControls,
+  LayerBlendModeControl,
+} from "@/features/editor/components/panels/common-layer-controls";
 import { loadGoogleFont } from "@/features/editor/lib/fonts/google-fonts-loader";
 import type { TextLayer } from "@/features/editor/schemas/meme-canvas-state.schema";
 import { useEditorStore } from "@/features/editor/store/editor-store";
@@ -244,130 +253,148 @@ export function TextPropertiesPanel({ layer }: { layer: TextLayer }) {
         ) : null}
       </div>
 
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label className="text-xs">Glow</Label>
-          <Switch
-            checked={layer.glow?.enabled ?? false}
-            onCheckedChange={(checked) =>
-              updateLayer(
-                layer.id,
-                {
-                  glow: {
-                    enabled: checked,
-                    color: layer.glow?.color ?? "#8b5cf6",
-                    blur: layer.glow?.blur ?? 16,
-                    intensity: layer.glow?.intensity ?? 1,
-                  },
-                  shadow: {
-                    ...(layer.shadow ?? { color: "#000000", blur: 0, offsetX: 0, offsetY: 0 }),
-                    enabled: false,
-                  },
-                },
-                { commit: true },
-              )
-            }
-          />
-        </div>
-        {layer.glow?.enabled ? (
-          <div className="space-y-2">
-            <ColorPickerPopover
-              value={layer.glow.color}
-              onChange={(color) =>
-                updateLayer(layer.id, { glow: { ...layer.glow!, color } }, { commit: true })
-              }
-            />
-            <Label className="text-muted-foreground text-xs">Intensity</Label>
-            <Slider
-              value={[layer.glow.blur]}
-              min={0}
-              max={60}
-              step={1}
-              onValueCommit={([value]) =>
-                updateLayer(layer.id, { glow: { ...layer.glow!, blur: value } }, { commit: true })
-              }
-            />
-          </div>
-        ) : null}
-      </div>
-
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label className="text-xs">Gradient fill</Label>
-          <Switch
-            checked={layer.gradientFill?.enabled ?? false}
-            onCheckedChange={(checked) =>
-              updateLayer(
-                layer.id,
-                {
-                  gradientFill: {
-                    enabled: checked,
-                    angle: layer.gradientFill?.angle ?? 0,
-                    stops: layer.gradientFill?.stops ?? [
-                      { offset: 0, color: "#8b5cf6" },
-                      { offset: 1, color: "#ec4899" },
-                    ],
-                  },
-                },
-                { commit: true },
-              )
-            }
-          />
-        </div>
-        {layer.gradientFill?.enabled ? (
-          <div className="space-y-2">
-            <div className="grid grid-cols-2 gap-2">
-              <ColorPickerPopover
-                value={layer.gradientFill.stops[0]?.color ?? "#8b5cf6"}
-                onChange={(color) =>
-                  updateLayer(
-                    layer.id,
-                    {
-                      gradientFill: {
-                        ...layer.gradientFill!,
-                        stops: [{ offset: 0, color }, layer.gradientFill!.stops[1]],
+      <Accordion type="single" collapsible>
+        <AccordionItem value="more-options">
+          <AccordionTrigger className="text-xs">More options</AccordionTrigger>
+          <AccordionContent className="space-y-5">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Glow</Label>
+                <Switch
+                  checked={layer.glow?.enabled ?? false}
+                  onCheckedChange={(checked) =>
+                    updateLayer(
+                      layer.id,
+                      {
+                        glow: {
+                          enabled: checked,
+                          color: layer.glow?.color ?? "#8b5cf6",
+                          blur: layer.glow?.blur ?? 16,
+                          intensity: layer.glow?.intensity ?? 1,
+                        },
+                        shadow: {
+                          ...(layer.shadow ?? {
+                            color: "#000000",
+                            blur: 0,
+                            offsetX: 0,
+                            offsetY: 0,
+                          }),
+                          enabled: false,
+                        },
                       },
-                    },
-                    { commit: true },
-                  )
-                }
-              />
-              <ColorPickerPopover
-                value={layer.gradientFill.stops[1]?.color ?? "#ec4899"}
-                onChange={(color) =>
-                  updateLayer(
-                    layer.id,
-                    {
-                      gradientFill: {
-                        ...layer.gradientFill!,
-                        stops: [layer.gradientFill!.stops[0], { offset: 1, color }],
-                      },
-                    },
-                    { commit: true },
-                  )
-                }
-              />
+                      { commit: true },
+                    )
+                  }
+                />
+              </div>
+              {layer.glow?.enabled ? (
+                <div className="space-y-2">
+                  <ColorPickerPopover
+                    value={layer.glow.color}
+                    onChange={(color) =>
+                      updateLayer(layer.id, { glow: { ...layer.glow!, color } }, { commit: true })
+                    }
+                  />
+                  <Label className="text-muted-foreground text-xs">Intensity</Label>
+                  <Slider
+                    value={[layer.glow.blur]}
+                    min={0}
+                    max={60}
+                    step={1}
+                    onValueCommit={([value]) =>
+                      updateLayer(
+                        layer.id,
+                        { glow: { ...layer.glow!, blur: value } },
+                        { commit: true },
+                      )
+                    }
+                  />
+                </div>
+              ) : null}
             </div>
-            <Label className="text-muted-foreground text-xs">Angle</Label>
-            <Slider
-              value={[layer.gradientFill.angle]}
-              min={0}
-              max={360}
-              step={1}
-              onValueCommit={([value]) =>
-                updateLayer(
-                  layer.id,
-                  { gradientFill: { ...layer.gradientFill!, angle: value } },
-                  { commit: true },
-                )
-              }
-            />
-          </div>
-        ) : null}
-      </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Gradient fill</Label>
+                <Switch
+                  checked={layer.gradientFill?.enabled ?? false}
+                  onCheckedChange={(checked) =>
+                    updateLayer(
+                      layer.id,
+                      {
+                        gradientFill: {
+                          enabled: checked,
+                          angle: layer.gradientFill?.angle ?? 0,
+                          stops: layer.gradientFill?.stops ?? [
+                            { offset: 0, color: "#8b5cf6" },
+                            { offset: 1, color: "#ec4899" },
+                          ],
+                        },
+                      },
+                      { commit: true },
+                    )
+                  }
+                />
+              </div>
+              {layer.gradientFill?.enabled ? (
+                <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <ColorPickerPopover
+                      value={layer.gradientFill.stops[0]?.color ?? "#8b5cf6"}
+                      onChange={(color) =>
+                        updateLayer(
+                          layer.id,
+                          {
+                            gradientFill: {
+                              ...layer.gradientFill!,
+                              stops: [{ offset: 0, color }, layer.gradientFill!.stops[1]],
+                            },
+                          },
+                          { commit: true },
+                        )
+                      }
+                    />
+                    <ColorPickerPopover
+                      value={layer.gradientFill.stops[1]?.color ?? "#ec4899"}
+                      onChange={(color) =>
+                        updateLayer(
+                          layer.id,
+                          {
+                            gradientFill: {
+                              ...layer.gradientFill!,
+                              stops: [layer.gradientFill!.stops[0], { offset: 1, color }],
+                            },
+                          },
+                          { commit: true },
+                        )
+                      }
+                    />
+                  </div>
+                  <Label className="text-muted-foreground text-xs">Angle</Label>
+                  <Slider
+                    value={[layer.gradientFill.angle]}
+                    min={0}
+                    max={360}
+                    step={1}
+                    onValueCommit={([value]) =>
+                      updateLayer(
+                        layer.id,
+                        { gradientFill: { ...layer.gradientFill!, angle: value } },
+                        { commit: true },
+                      )
+                    }
+                  />
+                </div>
+              ) : null}
+            </div>
+
+            <LayerBlendModeControl layer={layer} />
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
 
       <Separator />
-      <CommonLayerControls layer={layer} />
+      <CommonLayerControls layer={layer} hideBlendMode />
     </div>
   );
 }

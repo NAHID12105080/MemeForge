@@ -29,7 +29,40 @@ const BLEND_MODES: BlendMode[] = [
   "luminosity",
 ];
 
-export function CommonLayerControls({ layer }: { layer: Layer }) {
+export function LayerBlendModeControl({ layer }: { layer: Layer }) {
+  const updateLayer = useEditorStore((s) => s.updateLayer);
+
+  return (
+    <div className="space-y-2">
+      <Label className="text-xs">Blend mode</Label>
+      <Select
+        value={layer.blendMode}
+        onValueChange={(value) =>
+          updateLayer(layer.id, { blendMode: value as BlendMode }, { commit: true })
+        }
+      >
+        <SelectTrigger className="w-full">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {BLEND_MODES.map((mode) => (
+            <SelectItem key={mode} value={mode}>
+              {mode}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
+
+export function CommonLayerControls({
+  layer,
+  hideBlendMode = false,
+}: {
+  layer: Layer;
+  hideBlendMode?: boolean;
+}) {
   const updateLayer = useEditorStore((s) => s.updateLayer);
 
   return (
@@ -48,26 +81,7 @@ export function CommonLayerControls({ layer }: { layer: Layer }) {
         />
       </div>
 
-      <div className="space-y-2">
-        <Label className="text-xs">Blend mode</Label>
-        <Select
-          value={layer.blendMode}
-          onValueChange={(value) =>
-            updateLayer(layer.id, { blendMode: value as BlendMode }, { commit: true })
-          }
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {BLEND_MODES.map((mode) => (
-              <SelectItem key={mode} value={mode}>
-                {mode}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      {hideBlendMode ? null : <LayerBlendModeControl layer={layer} />}
 
       <div className="grid grid-cols-2 gap-2">
         <div className="space-y-1.5">
