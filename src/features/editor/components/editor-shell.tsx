@@ -37,14 +37,14 @@ export function EditorShell({ memeId, title, canvasState }: EditorShellProps) {
     <div className="fixed inset-0 flex flex-col">
       <EditorTopBar />
       <div className="flex flex-1 overflow-hidden">
-        <div className="border-border/60 w-64 shrink-0 border-r">
+        <div className="border-border/60 hidden w-64 shrink-0 border-r lg:block">
           <LayersPanel />
         </div>
         <div className="relative flex-1">
           <EditorCanvas />
           <EditorFloatingToolbar />
         </div>
-        <div className="border-border/60 w-64 shrink-0 border-l">
+        <div className="border-border/60 hidden w-64 shrink-0 border-l lg:block">
           <PropertiesPanel />
         </div>
       </div>

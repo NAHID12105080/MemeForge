@@ -13,6 +13,7 @@ import { saveMemeThumbnailAction } from "@/features/editor/actions/save-meme-thu
 import { saveMemeAction } from "@/features/editor/actions/save-meme.action";
 import { CanvasSizePopover } from "@/features/editor/components/toolbar/canvas-size-popover";
 import { DownloadButton } from "@/features/editor/components/toolbar/download-button";
+import { MobileEditorPanels } from "@/features/editor/components/panels/mobile-editor-panels";
 import { dataURLToBlob, rasterizeStageDataURL } from "@/features/editor/lib/export/rasterize-stage";
 import type { MemeCanvasState } from "@/features/editor/schemas/meme-canvas-state.schema";
 import { useEditorStore } from "@/features/editor/store/editor-store";
@@ -73,7 +74,7 @@ export function EditorTopBar() {
   }
 
   return (
-    <div className="border-border/60 bg-background/70 flex h-14 items-center gap-2 border-b px-3 backdrop-blur-lg">
+    <div className="border-border/60 bg-background/70 flex h-14 items-center gap-2 overflow-x-auto border-b px-3 backdrop-blur-lg">
       <Button variant="ghost" size="sm" asChild>
         <Link href="/dashboard">Exit</Link>
       </Button>
@@ -110,6 +111,7 @@ export function EditorTopBar() {
         </Button>
       </div>
       <CanvasSizePopover />
+      <MobileEditorPanels />
       <div className="ml-auto flex items-center gap-2">
         <DownloadButton />
         <Button size="sm" onClick={handleSave} disabled={isSaving || !isDirty}>
