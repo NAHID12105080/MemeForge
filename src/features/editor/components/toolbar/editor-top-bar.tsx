@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { saveMemeThumbnailAction } from "@/features/editor/actions/save-meme-thumbnail.action";
 import { saveMemeAction } from "@/features/editor/actions/save-meme.action";
 import { CanvasSizePopover } from "@/features/editor/components/toolbar/canvas-size-popover";
-import { DownloadButton } from "@/features/editor/components/toolbar/download-button";
+import { ExportMenu } from "@/features/editor/components/toolbar/export-menu";
 import { MobileEditorPanels } from "@/features/editor/components/panels/mobile-editor-panels";
 import { dataURLToBlob, rasterizeStageDataURL } from "@/features/editor/lib/export/rasterize-stage";
 import type { MemeCanvasState } from "@/features/editor/schemas/meme-canvas-state.schema";
@@ -113,7 +113,7 @@ export function EditorTopBar() {
       <CanvasSizePopover />
       <MobileEditorPanels />
       <div className="ml-auto flex items-center gap-2">
-        <DownloadButton />
+        <ExportMenu />
         <Button size="sm" onClick={handleSave} disabled={isSaving || !isDirty}>
           {isSaving ? <Loader2 className="size-4 animate-spin" /> : null}
           Save
