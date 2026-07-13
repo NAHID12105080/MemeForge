@@ -4,6 +4,7 @@ import { count, desc, eq } from "drizzle-orm";
 
 import { db } from "@/db/client";
 import { memes, templates, user } from "@/db/schema";
+import { refreshMediaUrl } from "@/lib/storage/upload-storage";
 
 export async function getFeaturedTemplates(limit = 8) {
   return db.query.templates.findMany({
@@ -14,7 +15,7 @@ export async function getFeaturedTemplates(limit = 8) {
 }
 
 export async function getTrendingMemes(limit = 12) {
-  return db.query.memes.findMany({
+  const rows = await db.query.memes.findMany({
     where: eq(memes.visibility, "public"),
     orderBy: [desc(memes.likeCount), desc(memes.publishedAt)],
     limit,
@@ -22,6 +23,12 @@ export async function getTrendingMemes(limit = 12) {
       user: { columns: { name: true, username: true, image: true } },
     },
   });
+  return Promise.all(
+    rows.map(async (row) => ({
+      ...row,
+      thumbnailUrl: row.thumbnailUrl ? await refreshMediaUrl(row.thumbnailUrl) : row.thumbnailUrl,
+    })),
+  );
 }
 
 export async function getPlatformStats() {
