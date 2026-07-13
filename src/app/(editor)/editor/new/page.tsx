@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db/client";
 import { templates } from "@/db/schema";
 import { EditorShell } from "@/features/editor/components/editor-shell";
+import { refreshCanvasMediaUrls } from "@/features/editor/lib/layers/refresh-canvas-media-urls";
 import { memeCanvasStateSchema } from "@/features/editor/schemas/meme-canvas-state.schema";
 
 export const metadata: Metadata = { title: "New meme" };
@@ -25,7 +26,7 @@ export default async function NewMemeEditorPage({
       where: eq(templates.slug, templateSlug),
     });
     if (template) {
-      const canvasState = memeCanvasStateSchema.parse(template.canvasState);
+      const canvasState = await refreshCanvasMediaUrls(memeCanvasStateSchema.parse(template.canvasState));
       return <EditorShell memeId={null} title={template.name} canvasState={canvasState} />;
     }
   }

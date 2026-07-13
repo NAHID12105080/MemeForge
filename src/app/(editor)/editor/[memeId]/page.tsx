@@ -5,6 +5,7 @@ import { notFound, redirect } from "next/navigation";
 import { db } from "@/db/client";
 import { memes } from "@/db/schema";
 import { EditorShell } from "@/features/editor/components/editor-shell";
+import { refreshCanvasMediaUrls } from "@/features/editor/lib/layers/refresh-canvas-media-urls";
 import { memeCanvasStateSchema } from "@/features/editor/schemas/meme-canvas-state.schema";
 import { getSession } from "@/lib/auth/session";
 
@@ -22,7 +23,7 @@ export default async function EditMemePage({ params }: { params: Promise<{ memeI
     notFound();
   }
 
-  const canvasState = memeCanvasStateSchema.parse(meme.canvasState);
+  const canvasState = await refreshCanvasMediaUrls(memeCanvasStateSchema.parse(meme.canvasState));
 
   return <EditorShell memeId={meme.id} title={meme.title} canvasState={canvasState} />;
 }
