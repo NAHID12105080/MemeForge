@@ -9,6 +9,11 @@ const envSchema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().optional(),
   GITHUB_CLIENT_ID: z.string().optional(),
   GITHUB_CLIENT_SECRET: z.string().optional(),
+  B2_ENDPOINT: z.string().url().optional(),
+  B2_REGION: z.string().optional(),
+  B2_KEY_ID: z.string().optional(),
+  B2_APPLICATION_KEY: z.string().optional(),
+  B2_BUCKET_NAME: z.string().optional(),
   NEXT_PUBLIC_APP_URL: z.string().url(),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 });
@@ -22,6 +27,11 @@ export const env = envSchema.parse({
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
   GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
   GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
+  B2_ENDPOINT: process.env.B2_ENDPOINT,
+  B2_REGION: process.env.B2_REGION,
+  B2_KEY_ID: process.env.B2_KEY_ID,
+  B2_APPLICATION_KEY: process.env.B2_APPLICATION_KEY,
+  B2_BUCKET_NAME: process.env.B2_BUCKET_NAME,
   NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
   NODE_ENV: process.env.NODE_ENV,
 });
