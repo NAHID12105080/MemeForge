@@ -1,4 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+// The installed `server-only` package (0.0.1) throws unconditionally on
+// import — it doesn't gate on `typeof window`, contrary to what its docs
+// imply. `upload-storage.ts` imports it at the top, so it must be mocked
+// here for this file's Node-environment test run to import that module.
+vi.mock("server-only", () => ({}));
 
 import { isB2Configured, refreshMediaUrl } from "@/lib/storage/upload-storage";
 

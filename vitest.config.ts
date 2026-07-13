@@ -10,9 +10,12 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    setupFiles: ["./vitest.setup.ts"],
     env: {
       NODE_ENV: "test",
+      DATABASE_URL: "postgresql://test:test@localhost:5432/test",
+      BETTER_AUTH_SECRET: "test-secret",
+      BETTER_AUTH_URL: "http://localhost:3000",
+      NEXT_PUBLIC_APP_URL: "http://localhost:3000",
     },
   },
 });
