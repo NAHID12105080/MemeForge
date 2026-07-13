@@ -40,6 +40,13 @@ jobs:
 
       - run: pnpm test
 
+      - run: pnpm exec tsx scripts/db/migrate.ts
+        env:
+          DATABASE_URL: postgresql://memeforge:memeforge@localhost:5432/memeforge
+          BETTER_AUTH_SECRET: ci-build-placeholder-not-used-at-runtime
+          BETTER_AUTH_URL: http://localhost:3000
+          NEXT_PUBLIC_APP_URL: http://localhost:3000
+
       - run: pnpm build
         env:
           DATABASE_URL: postgresql://memeforge:memeforge@localhost:5432/memeforge
